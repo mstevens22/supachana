@@ -17,6 +17,7 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "express": "4.15.4"
+    "express": "4.15.4",
+    "googleapis": ">2.x"
   }
 }
