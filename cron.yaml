@@ -1,0 +1,6 @@
+cron:
+- description: "retry demo"
+  url: /
+  schedule: every 10 mins
+  retry_parameters:
+    min_backoff_seconds: 2.5

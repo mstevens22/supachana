@@ -43,19 +43,27 @@ jwtClient.authorize(function (err, tokens) {
 
 var analytics = google.analytics('v3');
 
-analytics.data.realtime.get({ 
+app.get('/', (req, res) => {
+	console.log(req.headers);
+	if(req.headers['x-appengine-cron']){
+		analytics.data.realtime.get({
         auth: jwtClient,
         'ids': 'ga:115201053',
-        'metrics': 'rt:goal1Completions',
+        //'metrics': 'rt:goal1Completions',
+        'metrics': 'rt:pageviews',
         'dimensions': 'rt:minutesAgo',
         'prettyPrint': true
     }, function(err, result) {
         console.log(err);
-        console.log(result);
+        if (result) {
+        	for(var i = 0; i < result.rows.length;i++){
+		        console.log(result.rows[i]);
+		  	}
+        }        
     });
-
-/*app.get('/', (req, res) => {
-  res.status(200).send('Hello, world ta mère!').end();
+		res.status(200).send('====SUPACHANA===$').end();
+	}
+  res.status(401).send('====SUPACHANA===$').end();
 });
 
 // Start the server
@@ -63,5 +71,5 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log('Press Ctrl+C to quit.');
-});*/
+});
 // [END app]
