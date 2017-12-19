@@ -20,7 +20,41 @@ const express = require('express');
 
 const app = express();
 
-app.get('/', (req, res) => {
+let google = require('googleapis');
+let privatekey = require("./supanacha-2-a45bf07275b1.json");
+
+// configure a JWT auth client
+let jwtClient = new google.auth.JWT(
+       privatekey.client_email,
+       null,
+       privatekey.private_key,
+       ['https://www.googleapis.com/auth/analytics',
+       'https://www.googleapis.com/auth/analytics.readonly']);
+
+//authenticate request
+jwtClient.authorize(function (err, tokens) {
+ if (err) {
+   console.log(err);
+   return;
+ } else {
+   console.log("Successfully connected!");
+ }
+});
+
+var analytics = google.analytics('v3');
+
+analytics.data.realtime.get({ 
+        auth: jwtClient,
+        'ids': 'ga:115201053',
+        'metrics': 'rt:goal1Completions',
+        'dimensions': 'rt:minutesAgo',
+        'prettyPrint': true
+    }, function(err, result) {
+        console.log(err);
+        console.log(result);
+    });
+
+/*app.get('/', (req, res) => {
   res.status(200).send('Hello, world ta mère!').end();
 });
 
@@ -29,5 +63,5 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log('Press Ctrl+C to quit.');
-});
+});*/
 // [END app]
