@@ -52,7 +52,7 @@ const clientTwilio = require('twilio')(
 );
 
 app.get('/', (req, res) => {	
-	//if(req.headers['x-appengine-cron']){//Only cronjob can access
+	if(req.headers['x-appengine-cron']){//Only cronjob can access
 		analytics.data.realtime.get({
 	        auth: jwtClient,
 	        'ids': 'ga:115201053',
@@ -65,21 +65,23 @@ app.get('/', (req, res) => {
 	        	var success = false;
 	        	for (let item of result.rows) {	        		
 	        		if (item[0] < config.delay) {
-	        			console.log(item);
+	        			success = true;
+	        			break;
 	        		}				  
 				}
-	        } 
-			/*clientTwilio.messages.create({
-			  from: config.twilio_from,
-			  to: config.twilio_to,
-			  body: JSON.stringify(result)
-			}).then((messsage) => console.log(message.sid)); */     
+	        }
+	        if (!success) {
+		        clientTwilio.messages.create({
+				  from: config.twilio_from,
+				  to: config.twilio_to,
+				  body: JSON.stringify(result)
+				}).then((messsage) => console.log(message.sid));
+	        }    
     	});
-
 		res.status(200).send('====SUPACHANA===$').end();
-	/*} else {
+	} else {
 		res.status(401).send('====SUPACHANA===$').end();
-	}*/
+	}
 });
 
 // Start the server
