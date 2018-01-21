@@ -1,0 +1,7 @@
+cron:
+- description: "retry demo"
+  url: /
+  schedule: every 20 mins from 22:00 to 23:00
+  timezone: Europe/Paris
+  retry_parameters:
+    min_backoff_seconds: 2.5

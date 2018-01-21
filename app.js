@@ -52,31 +52,42 @@ const clientTwilio = require('twilio')(
 );
 
 app.get('/', (req, res) => {	
-	if(req.headers['x-appengine-cron']){//Only cronjob can access
+	if(req.headers[config.expected_header]){//Only cronjob can access
 		analytics.data.realtime.get({
 	        auth: jwtClient,
-	        'ids': 'ga:115201053',
-	        //'metrics': 'rt:goal1Completions',
-	        'metrics': 'rt:pageviews',
+	        'ids': config.ga_view_id,
+	        'metrics': config.ga_metrics,
 	        'dimensions': 'rt:minutesAgo',
 	        'prettyPrint': true
-    	}, function(err, result) {    		
+    	}, function(err, result) {    			
 	        if (result) {
-	        	var success = false;
-	        	for (let item of result.rows) {	        		
-	        		if (item[0] < config.delay) {
-	        			success = true;
-	        			break;
-	        		}				  
+	        	var success = false;	        	
+	        	//Find index of relevant dimension
+	        	if(typeof result.rows !== 'undefined'){
+		        	//delayIndex = result.findIndex(element => element.name == "rt:minutesAgo");
+		        	for (var ind in result.columnHeaders) {
+					  if (result.columnHeaders[ind].name == "rt:minutesAgo") {
+		        			var delayIndex = ind;
+		        			break;
+		        		}
+					}
+		        	//Loop over result to get at least one occured since delay
+		        	for (let item of result.rows) {	        		
+		        		if (item[delayIndex] < config.delay) {
+		        			success = true;
+		        			break;
+		        		}				  
+					}
 				}
-	        }
-	        if (!success) {
-		        clientTwilio.messages.create({
-				  from: config.twilio_from,
-				  to: config.twilio_to,
-				  body: JSON.stringify(result)
-				}).then((messsage) => console.log(message.sid));
-	        }    
+				//If no occurence then send notification
+				if (!success || typeof result.rows === 'undefined') {
+			        clientTwilio.messages.create({
+					  from: config.twilio_from,
+					  to: config.twilio_to,
+					  body: JSON.stringify(result)
+					}).then((messsage) => console.log(message.sid));
+	        	}
+	        }	           
     	});
 		res.status(200).send('====SUPACHANA===$').end();
 	} else {
